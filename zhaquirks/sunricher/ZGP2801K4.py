@@ -76,7 +76,8 @@ class ZGPSwitch(CustomDevice):
                     Basic.cluster_id,
                 ],
                 OUTPUT_CLUSTERS: [
-                    Scenes.cluster_id
+                    Scenes.cluster_id,
+                    OnOff.cluster_id
                 ],
             },
 
