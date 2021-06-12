@@ -1,19 +1,16 @@
 import logging
 import time
-from typing import Union, Optional, Coroutine, List, Any
+from typing import Union, Optional, List, Any
 
 from zigpy import types as t
 from zigpy.profiles import zha
 from zigpy.quirks import CustomDevice, CustomCluster
 from zigpy.zcl import foundation as foundation
-from zigpy.zcl.clusters.general import Basic, PowerConfiguration, DeviceTemperature, Groups, Identify, OnOff, Scenes, \
-    BinaryOutput, Time, Ota, AnalogInput, BinaryInput
-from zigpy.zcl.clusters.homeautomation import ElectricalMeasurement
+from zigpy.zcl.clusters.general import Basic, OnOff, Scenes
 
-from zhaquirks import Bus, MODELS_INFO, ENDPOINTS, PROFILE_ID, DEVICE_TYPE, INPUT_CLUSTERS, OUTPUT_CLUSTERS
+from zhaquirks import ENDPOINTS, PROFILE_ID, DEVICE_TYPE, INPUT_CLUSTERS, OUTPUT_CLUSTERS
 from zhaquirks.const import SKIP_CONFIGURATION, SHORT_PRESS, BUTTON_1, BUTTON_2, ARGS, COMMAND, BUTTON_3, BUTTON_4, \
-    ENDPOINT_ID, LONG_PRESS, BUTTON, PRESS_TYPE, COMMAND_ID, ZHA_SEND_EVENT, SHORT_RELEASE, LONG_RELEASE
-
+    BUTTON, PRESS_TYPE, COMMAND_ID, ZHA_SEND_EVENT, SHORT_RELEASE, LONG_RELEASE
 from zhaquirks.philips import ButtonPressQueue
 
 _LOGGER = logging.getLogger(__name__)
