@@ -15,6 +15,8 @@ from zhaquirks.philips import ButtonPressQueue
 
 _LOGGER = logging.getLogger(__name__)
 
+KEYMAP = {3: 0, 6: 0, 2: 1, 7: 1, 0: 2, 4: 2, 1: 3, 5: 3}
+
 
 class SunricherGpCluster(CustomCluster, Scenes):
 
@@ -35,20 +37,20 @@ class SunricherGpCluster(CustomCluster, Scenes):
         )
 
         button = args[1]
-        phys_button = button % 4
+        phys_button = KEYMAP[button]
         now = time.time()
 
         if button < 4:
             press_type = "press"
             self.press_time[phys_button] = now
         else:
-            if now - self.press_time[phys_button] > 300:
+            if now - self.press_time[phys_button] < 0.3:
                 press_type = "short_release"
             else:
                 press_type = "long_release"
 
         event_args = {
-            BUTTON: button,
+            BUTTON: phys_button,
             PRESS_TYPE: press_type,
             COMMAND_ID: hdr.command_id,
             ARGS: args,
