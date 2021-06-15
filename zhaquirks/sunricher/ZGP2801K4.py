@@ -13,17 +13,40 @@ from zhaquirks.const import SKIP_CONFIGURATION, SHORT_PRESS, BUTTON_1, BUTTON_2,
     BUTTON, PRESS_TYPE, COMMAND_ID, ZHA_SEND_EVENT, SHORT_RELEASE, LONG_RELEASE
 from zhaquirks.philips import ButtonPressQueue
 
+PRESS = "press"
+
 _LOGGER = logging.getLogger(__name__)
 
 class SunricherGpCluster(CustomCluster, Scenes):
 
-    KEYMAP = {3: 0, 6: 0, 2: 1, 7: 1, 0: 2, 4: 2, 1: 3, 5: 3}
+    #KEYMAP = {3: 0, 6: 0, 2: 1, 7: 1, 0: 2, 4: 2, 1: 3, 5: 3}
+    KEYMAP = {
+        # Single button presses
+        0x10: (2, "press"),
+        0x11: (3, "press"),
+        0x12: (1, "press"),
+        0x13: (0, "press"),
+        0x14: (2, "release"),
+        0x15: (3, "release"),
+        0x16: (1, "release"),
+        0x17: (0, "release"),
 
-    cluster_id = Scenes.cluster_id
+        # Simultaneous press of 0 and 2
+        0x62: (4, "press"),
+        0x63: (4, "release"),
+        # Simultaneous press of 1 and 3
+        0x64: (5, "press"),
+        0x65: (5, "release"),
+
+        # Simultaneous press of 0 and 3
+        0x68: (6, "press"),
+    }
+
+    cluster_id = 0x05
 
     button_press_queue = ButtonPressQueue()
 
-    press_time = [0] * 4
+    press_time = [0] * 7
 
     def handle_cluster_request(self, hdr: foundation.ZCLHeader, args: List[Any], *, dst_addressing: Optional[
         Union[t.Addressing.Group, t.Addressing.IEEE, t.Addressing.NWK]
@@ -31,32 +54,36 @@ class SunricherGpCluster(CustomCluster, Scenes):
         _LOGGER.debug(
             "SunricherGpCluster - handle_cluster_request tsn: [%s] command id: %s - args: [%s]",
             hdr.tsn,
-            hdr.command_id,
+            hex(hdr.command_id),
             args,
         )
 
-        button = args[1]
-        phys_button = self.KEYMAP[button]
+        button, press_type = self.KEYMAP.get(hdr.command_id, (None, None))
+        _LOGGER.debug("%s", button)
+
+        if button is None:
+            return
+
         now = time.time()
 
-        if button < 4:
-            press_type = "press"
-            self.press_time[phys_button] = now
+        if press_type == PRESS:
+            self.press_time[button] = now
         else:
-            if now - self.press_time[phys_button] < 0.3:
+            if now - self.press_time[button] < 0.3:
                 press_type = "short_release"
             else:
                 press_type = "long_release"
 
         event_args = {
-            BUTTON: phys_button,
+            BUTTON: button,
             PRESS_TYPE: press_type,
             COMMAND_ID: hdr.command_id,
             ARGS: args,
         }
 
-        action = f"button{phys_button}_{press_type}"
+        action = f"button{button}_{press_type}"
         self.listener_event(ZHA_SEND_EVENT, action, event_args)
+        _LOGGER.debug("Post!")
 
 
 
@@ -75,7 +102,9 @@ class ZGPSwitch(CustomDevice):
                 ],
                 OUTPUT_CLUSTERS: [
                     Scenes.cluster_id,
-                    OnOff.cluster_id
+                    OnOff.cluster_id,
+                    0x21,
+                    0x99
                 ],
             },
 
