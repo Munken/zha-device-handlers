@@ -103,8 +103,6 @@ class ZGPSwitch(CustomDevice):
                 OUTPUT_CLUSTERS: [
                     Scenes.cluster_id,
                     OnOff.cluster_id,
-                    0x21,
-                    0x99
                 ],
             },
 
